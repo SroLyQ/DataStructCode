@@ -71,10 +71,10 @@ class Queue:
         temp=''
         for i in range(len(self.queue)):
             if i != len(self.queue)-1:
-                temp+=self.queue[i]
+                temp+=self.queue[i].data[0]
                 temp+=', '
             else:
-                temp+=self.queue[i]
+                temp+=self.queue[i].data[0]
         return str(temp)
     def size(self):
         return int(len(self.queue))
@@ -85,6 +85,11 @@ class Queue:
         if(len(self.queue)>0):
             return self.queue[0]   
         return None
+    def second(self):
+        if(len(self.queue)>1):
+            return self.queue[1]   
+        return None
+
     def push(self,arg):
         self.queue.append(arg)
     def isEmpty(self):
@@ -93,6 +98,12 @@ class Queue:
         else:
             return True
 
+def findEncode(root,codeWord):
+    if(root.left == None and root.right == None):
+        encodedDic.update({root.data[0]:codeWord})
+        return
+    findEncode(root.right,codeWord+'1')
+    findEncode(root.left,codeWord+'0')
 inp = input('Enter Input : ')
 count = {}
 for i in inp:
@@ -100,33 +111,43 @@ for i in inp:
         count.update({i:1})
     else:
         count[i]+=1
-sort_count = dict(sorted(count.items(), key=lambda x: x[::-1]))
+sort_count = dict(sorted(count.items(), key=lambda x: x[::-1],reverse=False))
 st=Stack()
+q=Queue()
 for i in sort_count.items():
-    st.push(Node(i))
-st.reverse()
-print(st)
-st2=Stack()
-while(not st.isEmpty()):
-    if(not st.isEmpty()):
-        pop1 = st.pop()
-    if(not st.isEmpty()):
-        pop2 = st.pop()
-    #print(str(pop1)+' and '+str(pop2))
-    T=Node(('*',pop1.data[1]+pop2.data[1]))
-    T.left = pop1
-    T.right =  pop2
-    if not st.isEmpty():
-        while st.top().data[1]<T.data[1]:
-            st2.push(st.pop())
-            if st.isEmpty():
-                break
-        st.push(T)
-        while not st2.isEmpty():
-            st.push(st2.pop())
-            if st2.isEmpty():
-                break
-    root=T
+    q.push(Node(i))
+#st.reverse()
+q2=Queue()
+while not q.isEmpty():
+    if q2.isEmpty():
+        q2.push(q.pop())
+    else:
+        while q2.size()>=2 and q.front().data[1] >= q2.front().data[1] + q2.second().data[1]:
+            pop1 = q2.pop()
+            pop2 = q2.pop()
+            newNode = Node(('*',pop1.data[1]+pop2.data[1]))
+            newNode.left = pop1
+            newNode.right = pop2
+            q2.push(newNode)
+        
+        q2.push(q.pop())
+while not q2.isEmpty():
+    pop1=q2.pop()
+    pop2=q2.pop()
+    newNode = Node(('*',pop1.data[1]+pop2.data[1]))
+    newNode.left=pop1
+    newNode.right=pop2
+    q2.push(newNode)
+    if q2.size()==1:
+        root = q2.pop()
+
+encodedDic = {}
+findEncode(root,'')
+print(encodedDic)
 bst = BST()
 bst.setRoot(root)
 bst.printTree(bst.root)
+encodedWord=''
+for i in inp:
+    encodedWord+=encodedDic[i]
+print('Encoded! : '+encodedWord)
